@@ -4,12 +4,21 @@ namespace phmLabs\CssValidatorBridge;
 
 class CssValidator
 {
-    public function validate($cssString)
+    const CONFIG_LINT = 'lint.json';
+    const CONFIG_STYLE = 'style.json';
+
+    public function validate($cssString, $config = self::CONFIG_LINT)
     {
+        $configFile = __DIR__ . '/../validator/' . $config;
+
+        if (!file_exists($configFile)) {
+            throw new \RuntimeException('Unable to find config file "' . $configFile . '"');
+        }
+
         $file = sys_get_temp_dir() . DIRECTORY_SEPARATOR . md5(microtime()) . '.tmp';
         file_put_contents($file, $cssString);
 
-        $command = __DIR__ . '/../validator/node_modules/.bin/stylelint ' . $file . ' --config ' . __DIR__ . '/../validator/config.json -f json 2>&1';
+        $command = __DIR__ . '/../validator/node_modules/.bin/stylelint ' . $file . ' --config ' . $configFile . ' -f json 2>&1';
         exec($command, $plainOutput, $return);
         unlink($file);
 
